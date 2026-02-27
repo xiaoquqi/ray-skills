@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "antfu-antfu": {
+      "source": "smithery/ai",
+      "sourceType": "well-known",
+      "computedHash": "9430272f8d78a4a2157f65597b699f402658dc20167704f38e72a152614a769e"
+    },
+    "smithery-ai-cli": {
+      "source": "smithery/ai",
+      "sourceType": "well-known",
+      "computedHash": "edf3c62fee13c4ba6702f9f3341c584397e4a3eac25b1cdf08f91836a45adbfe"
+    }
+  }
+}

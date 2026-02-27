@@ -1,0 +1,27 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python/cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Logs/temp
+*.log
+tmp/
+*.tmp
+
+# Local env
+.env
+.env.*
+
+# Skill packaging artifacts
+build/
+dist/
+
+# Local installed skill mirrors / caches
+scripts/.agents/
+scripts/.codex/
