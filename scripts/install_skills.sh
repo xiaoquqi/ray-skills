@@ -40,7 +40,7 @@ Options:
   -h, --help            Show this help
 
 Examples:
-  ./scripts/install_skills.sh --all-targets
+  ./scripts/install_skills.sh
   ./scripts/install_skills.sh --target ~/.codex/skills --target ~/.agents/skills
   ./scripts/install_skills.sh --all-targets --uninstall
 USAGE
@@ -216,7 +216,7 @@ if [[ "$MODE" != "symlink" && "$MODE" != "copy" ]]; then
 fi
 
 if [[ "${#TARGETS[@]}" -eq 0 ]]; then
-  TARGETS+=("$HOME/.codex/skills")
+  TARGETS=("${KNOWN_TARGETS[@]}")
 fi
 
 mapfile -t SKILLS < <(collect_skills)

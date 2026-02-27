@@ -7,6 +7,17 @@ LIST_FILE="$ROOT_DIR/scripts/common-skills.txt"
 DRY_RUN=0
 CONTINUE_ON_ERROR=0
 AGENTS=("codex" "claude-code" "cursor" "gemini-cli" "opencode")
+SYNC_ALL_TARGETS=1
+SYNC_ONLY=0
+FORCE_SYNC=0
+
+KNOWN_TARGETS=(
+  "$HOME/.codex/skills"
+  "$HOME/.agents/skills"
+  "$HOME/.claude/skills"
+  "$HOME/.cursor/skills"
+  "$HOME/.windsurf/skills"
+)
 
 SKILLS=()
 
@@ -24,6 +35,9 @@ Options:
   --list-file <path>      Skill list file (default: scripts/common-skills.txt)
   --skill <owner/name>    Add a single skill (repeatable)
   --only-listed           Ignore --skill values and use list file only
+  --sync-only             Skip install and only sync to IDE skill directories
+  --no-sync               Disable syncing to IDE skill directories
+  --force-sync            Replace existing non-symlink entries during sync
   --dry-run               Print actions without executing
   --continue-on-error     Continue when one skill install fails
   --agents <a,b,c>        Agents passed to skill add (default: codex,claude-code,cursor,gemini-cli,opencode)
@@ -32,6 +46,7 @@ Options:
 
 Examples:
   ./scripts/install_common_skills.sh
+  ./scripts/install_common_skills.sh --sync-only
   ./scripts/install_common_skills.sh --dry-run
   ./scripts/install_common_skills.sh --skill anthropics/pdf --skill github/refactor
 USAGE
@@ -93,6 +108,66 @@ normalize_slug() {
   esac
 }
 
+skill_dir_name() {
+  local slug
+  slug="$(normalize_slug "$1")"
+  printf '%s\n' "${slug/\//-}"
+}
+
+safe_remove_dest() {
+  local dest="$1"
+
+  if [[ ! -e "$dest" && ! -L "$dest" ]]; then
+    return 0
+  fi
+
+  if [[ -L "$dest" ]]; then
+    run_cmd "rm -f \"$dest\""
+    return 0
+  fi
+
+  if [[ "$FORCE_SYNC" -eq 1 ]]; then
+    run_cmd "rm -rf \"$dest\""
+    return 0
+  fi
+
+  log "skip existing non-symlink path: $dest (use --force-sync to replace)"
+  return 1
+}
+
+sync_skill_to_targets() {
+  local slug="$1"
+  local name
+  name="$(skill_dir_name "$slug")"
+  local src="$HOME/.agents/skills/$name"
+  local target=""
+  local dest=""
+
+  if [[ ! -d "$src" ]]; then
+    log "skip sync missing source: $src"
+    return 0
+  fi
+
+  for target in "${KNOWN_TARGETS[@]}"; do
+    if [[ "$target" == "$HOME/.agents/skills" ]]; then
+      continue
+    fi
+
+    run_cmd "mkdir -p \"$target\""
+    dest="$target/$name"
+    safe_remove_dest "$dest" || continue
+    run_cmd "ln -s \"$src\" \"$dest\""
+    log "synced: $name -> $dest"
+  done
+}
+
+sync_all_skills() {
+  local slug=""
+  for slug in "${SKILLS[@]}"; do
+    sync_skill_to_targets "$slug"
+  done
+}
+
 install_one() {
   local slug
   slug="$(normalize_slug "$1")"
@@ -126,6 +201,18 @@ while [[ $# -gt 0 ]]; do
       ;;
     --only-listed)
       USE_LIST_FILE=1
+      shift
+      ;;
+    --sync-only)
+      SYNC_ONLY=1
+      shift
+      ;;
+    --no-sync)
+      SYNC_ALL_TARGETS=0
+      shift
+      ;;
+    --force-sync)
+      FORCE_SYNC=1
       shift
       ;;
     --dry-run)
@@ -178,19 +265,25 @@ if [[ "${PRINT_LIST:-0}" -eq 1 ]]; then
 fi
 
 fail_count=0
-for slug in "${SKILLS[@]}"; do
-  if ! install_one "$slug"; then
-    log "failed: $slug"
-    fail_count=$((fail_count + 1))
-    if [[ "$CONTINUE_ON_ERROR" -eq 0 ]]; then
-      exit 2
+if [[ "$SYNC_ONLY" -eq 0 ]]; then
+  for slug in "${SKILLS[@]}"; do
+    if ! install_one "$slug"; then
+      log "failed: $slug"
+      fail_count=$((fail_count + 1))
+      if [[ "$CONTINUE_ON_ERROR" -eq 0 ]]; then
+        exit 2
+      fi
     fi
-  fi
-done
+  done
+fi
 
 if [[ "$fail_count" -gt 0 ]]; then
   log "completed with failures: $fail_count"
   exit 2
+fi
+
+if [[ "$SYNC_ALL_TARGETS" -eq 1 ]]; then
+  sync_all_skills
 fi
 
 log "completed successfully"
