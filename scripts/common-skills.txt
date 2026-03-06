@@ -19,3 +19,4 @@ github/web-design-reviewer
 anthropics/applying-brand-guidelines
 anthropics/web-artifacts-builder
 github/excalidraw-diagram-generator
+teng-lin/notebooklm

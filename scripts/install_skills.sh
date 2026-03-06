@@ -50,6 +50,10 @@ log() {
   printf '%s\n' "$*"
 }
 
+header() {
+  printf '\n==> %s\n\n' "$*"
+}
+
 status_word() {
   if [[ "$DRY_RUN" -eq 1 ]]; then
     printf '%s' "would"
@@ -219,7 +223,10 @@ if [[ "${#TARGETS[@]}" -eq 0 ]]; then
   TARGETS=("${KNOWN_TARGETS[@]}")
 fi
 
-mapfile -t SKILLS < <(collect_skills)
+SKILLS=()
+while IFS= read -r skill; do
+  SKILLS+=("$skill")
+done < <(collect_skills)
 
 if [[ "${#SKILLS[@]}" -eq 0 ]]; then
   log "no skill directories found (need folders with SKILL.md)"
@@ -228,6 +235,12 @@ fi
 
 log "root: $ROOT_DIR"
 log "skills found: ${#SKILLS[@]}"
+
+if [[ "$UNINSTALL" -eq 1 ]]; then
+  header "Uninstalling skills"
+else
+  header "Installing skills"
+fi
 
 for target in "${TARGETS[@]}"; do
   log "target: $target"
@@ -240,4 +253,11 @@ for target in "${TARGETS[@]}"; do
   done
 done
 
-log "done"
+if [[ "$UNINSTALL" -eq 1 ]]; then
+  header "Uninstall complete"
+else
+  header "Install complete"
+fi
+
+log ""
+log "Restart your IDE (Codex, Claude Code, Cursor, etc.) to pick up the changes."

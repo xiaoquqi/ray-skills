@@ -56,6 +56,10 @@ log() {
   printf '%s\n' "$*"
 }
 
+header() {
+  printf '\n==> %s\n\n' "$*"
+}
+
 run_cmd() {
   local cmd="$1"
   if [[ "$DRY_RUN" -eq 1 ]]; then
@@ -111,7 +115,8 @@ normalize_slug() {
 skill_dir_name() {
   local slug
   slug="$(normalize_slug "$1")"
-  printf '%s\n' "${slug/\//-}"
+  # Extract only the skill name part (after the last slash)
+  printf '%s\n' "${slug##*/}"
 }
 
 safe_remove_dest() {
@@ -142,6 +147,11 @@ sync_skill_to_targets() {
   local src="$HOME/.agents/skills/$name"
   local target=""
   local dest=""
+
+  # Skip if source doesn't exist
+  if [[ ! -d "$src" ]]; then
+    return 0
+  fi
 
   if [[ ! -d "$src" ]]; then
     log "skip sync missing source: $src"
@@ -183,8 +193,21 @@ install_one() {
     agent_flags+=" --agent \"$agent\""
   done
 
-  log "installing: $slug (via npx skill add, agents=${AGENTS[*]}, global)"
-  run_cmd "npx @smithery/cli@latest skill add \"$slug\"$agent_flags --global"
+  log "installing: $slug"
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "[dry-run] npx --yes @smithery/cli@latest skill add \"$slug\"$agent_flags --global"
+    return 0
+  fi
+
+  # Suppress output unless there's an error
+  if ! npx --yes @smithery/cli@latest skill add "$slug"$agent_flags --global >/dev/null 2>&1; then
+    log "failed: $slug"
+    return 1
+  fi
+
+  log "  ✓ installed: $slug"
+  return 0
 }
 
 USE_LIST_FILE=1
@@ -264,6 +287,7 @@ if [[ "${PRINT_LIST:-0}" -eq 1 ]]; then
   exit 0
 fi
 
+header "Installing skills"
 fail_count=0
 if [[ "$SYNC_ONLY" -eq 0 ]]; then
   for slug in "${SKILLS[@]}"; do
@@ -275,6 +299,7 @@ if [[ "$SYNC_ONLY" -eq 0 ]]; then
       fi
     fi
   done
+  header "Installation complete"
 fi
 
 if [[ "$fail_count" -gt 0 ]]; then
@@ -283,8 +308,10 @@ if [[ "$fail_count" -gt 0 ]]; then
 fi
 
 if [[ "$SYNC_ALL_TARGETS" -eq 1 ]]; then
+  header "Syncing to IDE directories"
   sync_all_skills
+  header "Sync complete"
 fi
 
-log "completed successfully"
-log "Restart Codex to pick up new skills."
+log ""
+log "All done. Restart your IDE (Codex, Claude Code, Cursor, etc.) to pick up new skills."
