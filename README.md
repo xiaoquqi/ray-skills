@@ -2,6 +2,11 @@
 
 Personal skill collection for agent-based coding workflows.
 
+## Guides
+
+- [AGENTS.md](./AGENTS.md): repository guidelines and workflow notes
+- [CLAUDE.md](./CLAUDE.md): Claude Code-specific instructions and commands
+
 ## Structure
 
 - `skills/ray-git-commit/`: staged-diff commit message + auto-commit workflow
@@ -10,6 +15,7 @@ Personal skill collection for agent-based coding workflows.
 - `skills/python-expert/`: local copy of python-expert baseline rules
 - `skills/`: skill modules root directory
 - `scripts/install_skills.sh`: global installer (symlink-first)
+- `scripts/install_custom_skills.sh`: GitHub source installer for bundled external skills
 
 ## Install Globally (Recommended: Symlink)
 
@@ -53,7 +59,9 @@ Symlink mode keeps your global skills always in sync with this repo.
 
 ## Install Common Marketplace Skills
 
-Install a curated common set (from `scripts/common-skills.txt`) one by one:
+Install a curated common set (from `scripts/common-skills.txt`) one by one. This
+also invokes `scripts/install_custom_skills.sh` so the GitHub bundle is pulled
+in the same run:
 
 ```bash
 # Dry run
@@ -75,6 +83,22 @@ Optional usage:
 # Install for specific agents only
 ./scripts/install_common_skills.sh --agents codex,claude-code,cursor,gemini-cli,opencode
 ```
+
+## Install Custom GitHub Skills
+
+Install bundled skills directly from GitHub using `scripts/custom-skills.txt`:
+
+```bash
+# Dry run
+./scripts/install_custom_skills.sh --dry-run
+
+# Real install
+./scripts/install_custom_skills.sh
+```
+
+The current custom bundle pulls the WeChat article skills from:
+
+- `github.com/BND-1/wechat_article_skills -> all`
 
 For `antfu/skills`, you can also install specific sub-skills (for example Vue and
 Vitest) with:

@@ -16,7 +16,8 @@ anthropics/creating-financial-models
 anthropics/canvas-design
 github/prd
 github/web-design-reviewer
+ceeon/videocut
 anthropics/applying-brand-guidelines
 anthropics/web-artifacts-builder
 github/excalidraw-diagram-generator
-teng-lin/notebooklm
+b-open-io/notebooklm

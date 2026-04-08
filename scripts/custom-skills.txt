@@ -1,0 +1,16 @@
+# Custom Skills from GitHub Repositories
+# Format: <repo_url> -> <target_path>
+#
+# - Use "all" to install all skills from the repo
+# - Use specific sub-path for single skill (e.g., "skills/douyin-script")
+# - Use "." for repo root if SKILL.md is at root
+
+# WeChat article skill bundle from GitHub.
+# Includes: wechat-article-formatter, wechat-draft-publisher, wechat-tech-writer, wechat-product-manager-writer
+github.com/BND-1/wechat_article_skills -> all
+
+# Douyin script skill from GitHub tree URL.
+https://github.com/5tldr/claude-skills/tree/main/skills/douyin-script -> skills/douyin-script
+
+# Viral Writer skill from GitHub root repo.
+github.com/nashsu/Viral_Writer_Skill -> .

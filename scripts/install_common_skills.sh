@@ -210,6 +210,31 @@ install_one() {
   return 0
 }
 
+install_custom_skills() {
+  local custom_script="$ROOT_DIR/scripts/install_custom_skills.sh"
+  local args=()
+
+  if [[ ! -x "$custom_script" ]]; then
+    log "missing custom installer: $custom_script"
+    return 1
+  fi
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    args+=("--dry-run")
+  fi
+
+  if [[ "$FORCE_SYNC" -eq 1 ]]; then
+    args+=("--force")
+  fi
+
+  log "running custom GitHub skill installer"
+  if [[ "${#args[@]}" -gt 0 ]]; then
+    "$custom_script" "${args[@]}"
+  else
+    "$custom_script"
+  fi
+}
+
 USE_LIST_FILE=1
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -289,28 +314,35 @@ fi
 
 header "Installing skills"
 fail_count=0
+common_failed=0
 if [[ "$SYNC_ONLY" -eq 0 ]]; then
   for slug in "${SKILLS[@]}"; do
     if ! install_one "$slug"; then
       log "failed: $slug"
       fail_count=$((fail_count + 1))
       if [[ "$CONTINUE_ON_ERROR" -eq 0 ]]; then
-        exit 2
+        common_failed=1
+        break
       fi
     fi
   done
   header "Installation complete"
 fi
 
-if [[ "$fail_count" -gt 0 ]]; then
-  log "completed with failures: $fail_count"
-  exit 2
-fi
-
 if [[ "$SYNC_ALL_TARGETS" -eq 1 ]]; then
   header "Syncing to IDE directories"
   sync_all_skills
   header "Sync complete"
+fi
+
+install_custom_skills
+
+if [[ "$fail_count" -gt 0 ]]; then
+  log "completed with failures: $fail_count"
+fi
+
+if [[ "$common_failed" -eq 1 ]] || [[ "$fail_count" -gt 0 ]]; then
+  exit 2
 fi
 
 log ""
