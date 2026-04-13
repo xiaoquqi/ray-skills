@@ -101,7 +101,8 @@ git submodule update --init --recursive
 - `INSTALLED_APPS` 增加：`agentcore_metering.adapters.django`、`agentcore_task.adapters.django`、`agentcore_notifier.adapters.django`。
 - 根 URLconf 增加 agentcore 的 `path(..., include(...))`。
 - 业务代码从 `agentcore_task.adapters.django`、`agentcore_metering.adapters.django` 等导入，不再使用自建的 llm_tracker / task_manager / notifier。
-- 项目需提供 `core.periodic_registry` 及 management command `register_periodic_tasks`，供各 app（含 agentcore）注册定时任务；Celery 使用 `DatabaseScheduler`，不再依赖静态 `CELERY_BEAT_SCHEDULE`。
+- 项目需提供 `core.periodic_registry` 及 management command `register_periodic_tasks`，供各 app（含 agentcore）注册定时任务；Celery 使用 `DatabaseScheduler`，不再依赖静态 `CELERY_BEAT_SCHEDULE`。注册器的行为应是“只创建缺失记录，已有记录不更新”。
+- 这套注册器的语义应是“**不存在则创建，已存在则不更新**”，以避免启动时覆盖数据库里手工调整过的 Beat 记录。
 
 ## register_periodic_tasks 与 periodic_registry 代码（可直接复用）
 
@@ -112,6 +113,6 @@ git submodule update --init --recursive
 | [code/periodic_registry.py](code/periodic_registry.py) | `{SOURCE_PACKAGE}/core/periodic_registry.py` |
 | [code/register_periodic_tasks.py](code/register_periodic_tasks.py) | `{SOURCE_PACKAGE}/core/management/commands/register_periodic_tasks.py` |
 
-说明见 [code/README.md](code/README.md)。若主 app 不叫 `core`，复制后需将代码中的 `from core.periodic_registry import ...` 改为你的 app 名。依赖：Django、django-celery-beat。
+说明见 [code/README.md](code/README.md)。若主 app 不叫 `core`，复制后需将代码中的 `from core.periodic_registry import ...` 改为你的 app 名。依赖：Django、django-celery-beat。注册器默认只创建缺失任务，发现同名任务时直接跳过。
 
 本仓库完整说明见：`easy-divine/docs/AGENTCORE_SUBMODULES.md`。

@@ -23,10 +23,10 @@ description: >-
 
 引入或审查 agentcore 时，按下列项逐条核对：
 
-- [ ] **子模块路径**：agentcore 在 `{SOURCE_PACKAGE}/agentcore/` 下（例如 easy-divine 为 `easy_divine/agentcore/`，devmind 为 `devmind/agentcore/`），即物理路径为 `repo/{SOURCE_PACKAGE}/agentcore/agentcore-*`。
-- [ ] **.gitmodules**：`path` 为 `{SOURCE_PACKAGE}/agentcore/agentcore-metering` 等，不是仓库根的 `agentcore/...`。
-- [ ] **Dockerfile**：`COPY {SOURCE_PACKAGE} /opt/...` 会包含 agentcore；存在 `ARG DEV_MODE=0` 且在 `DEV_MODE=1` 时对 `.../agentcore/*/` 执行 `pip install -e .`。
-- [ ] **docker-compose.dev.yml**：build args 含 `DEV_MODE: "1"`，并挂载 `./{SOURCE_PACKAGE}:/opt/...`。
+- [ ] **子模块路径**：agentcore 在 `{SOURCE_PACKAGE}/agentcore/` 下。`{SOURCE_PACKAGE}` 为**被 Docker COPY 进镜像的那一层目录**（即项目源码包），可为单层（如 `easy_divine/`、`devmind/`）或嵌套（如 `newshub/newshub/`，即仓库内层项目包）。物理路径为 `repo/{SOURCE_PACKAGE}/agentcore/agentcore-*`。
+- [ ] **.gitmodules**：`path` 为 `{SOURCE_PACKAGE}/agentcore/agentcore-metering` 等，不是仓库根的 `agentcore/...`。若 SOURCE_PACKAGE 为 `newshub/newshub`，则 path 为 `newshub/agentcore/agentcore-metering`（相对仓库根）。
+- [ ] **Dockerfile**：COPY 进镜像的那一层包含 agentcore（即 `{SOURCE_PACKAGE}/agentcore/` 被带入镜像）；存在 `ARG DEV_MODE=0` 且在 `DEV_MODE=1` 时对镜像内 `.../agentcore/*/` 执行 `pip install -e .`（路径与镜像内实际路径一致，如 `/opt/newshub/agentcore/*/`）。
+- [ ] **docker-compose.dev.yml**：build args 含 `DEV_MODE: "1"`，并挂载包含 SOURCE_PACKAGE 的源码目录（如 `./newshub:/opt/newshub`），使容器内能访问到 agentcore。
 - [ ] **docker-compose.yml（生产）**：build args 含 `DEV_MODE: "0"`，不挂载源码卷。
 - [ ] **pyproject.toml**：依赖中保留从 GitHub 安装的 agentcore（生产与 CI 使用）。
 - [ ] **entrypoint.sh**：在 migrate 之后执行 `register_periodic_tasks`，使 agentcore 与业务 app 的定时任务写入 django_celery_beat；若从自建 llm_tracker/notifier 迁移，在 migrate 前执行 `rename_old_agentcore_tables`（可选）。
@@ -35,15 +35,25 @@ description: >-
 
 ### 1. 子模块放在源码包下
 
-将 agentcore 放在**会被 COPY 进镜像的目录**内。若镜像里工作目录是 `/opt/my_project`，则 COPY 的是仓库里的 `my_project/` 目录，agentcore 必须在 `my_project/agentcore/` 下。
+将 agentcore 放在**会被 COPY 进镜像的目录**内。若镜像里工作目录是 `/opt/my_project`，则 COPY 的是仓库里的 `my_project/` 目录，agentcore 必须在 `my_project/agentcore/` 下。**SOURCE_PACKAGE 可为嵌套路径**（例如 Django 项目在 `newshub/newshub/` 时，用 `newshub/newshub` 作为 SOURCE_PACKAGE，agentcore 即为 `newshub/newshub/agentcore/`）。
 
 ```bash
-# 在仓库根执行，{SOURCE_PACKAGE} 替换为你的 Django 源码包名（如 easy_divine、devmind）
+# 在仓库根执行。{SOURCE_PACKAGE} 替换为“被 COPY 进镜像”的那一层相对路径（如 easy_divine、devmind，或 newshub/newshub）
 mkdir -p {SOURCE_PACKAGE}/agentcore
 git submodule add https://github.com/cloud2ai/agentcore-metering.git {SOURCE_PACKAGE}/agentcore/agentcore-metering
 git submodule add https://github.com/cloud2ai/agentcore-task.git {SOURCE_PACKAGE}/agentcore/agentcore-task
 git submodule add https://github.com/cloud2ai/agentcore-notifier.git {SOURCE_PACKAGE}/agentcore/agentcore-notifier
 ```
+
+**引入完成后获取最新代码**（在仓库根执行）：
+
+```bash
+git pull
+git submodule update --init --recursive
+git submodule update --remote
+```
+
+首次克隆建议：`git clone --recurse-submodules <repo>`。
 
 ### 2. Dockerfile：DEV_MODE + 可编辑安装
 
@@ -75,7 +85,7 @@ RUN set -eux; \
 agentcore 与业务 app 的**定时任务**需在启动时写入 django_celery_beat，Celery Beat 才会按表调度。
 
 - **在 migrate 之后**执行：`python manage.py register_periodic_tasks`（或 `|| true` 避免失败阻断启动）。  
-  该命令会遍历 `INSTALLED_APPS` 中各 app 的 `periodic_tasks.register_periodic_tasks()`（含 agentcore_task、agentcore_metering、agentcore_notifier），将 cron 写入 django_celery_beat（幂等）。
+  该命令会遍历 `INSTALLED_APPS` 中各 app 的 `periodic_tasks.register_periodic_tasks()`（含 agentcore_task、agentcore_metering、agentcore_notifier），只创建缺失的 cron 记录，已存在的 django_celery_beat 记录保持不变。
 - **调用时机**：在 **gunicorn** 与 **celery-beat** 分支中，在 `run_migrations` 之后、启动进程之前调用一次；devmind 则在 `run_migrations` 末尾直接执行该命令。
 - **若从自建 llm_tracker/notifier 迁移**：在 migrate 之前执行 `python manage.py rename_old_agentcore_tables || true`，将旧表重命名为 `*_old`，避免与 agentcore 迁移冲突（仅 PostgreSQL，一次性升级）。详见 [reference.md](reference.md) 的 entrypoint 小节。
 
@@ -85,5 +95,6 @@ agentcore 与业务 app 的**定时任务**需在启动时写入 django_celery_b
 
 - 本仓库：`easy-divine/docs/AGENTCORE_SUBMODULES.md`、`easy-divine/Dockerfile`、`docker-compose.dev.yml` / `docker-compose.yml`。
 - devmind：agentcore 在 `devmind/agentcore/`，Dockerfile 与 compose 使用相同 DEV_MODE 与挂载模式。
+- newshub：agentcore 在 **`newshub/newshub/agentcore/`**（SOURCE_PACKAGE 为嵌套路径 `newshub/newshub`），.gitmodules 的 path 为 `newshub/agentcore/agentcore-*`，Dockerfile 中 `COPY newshub /opt/newshub` 后对 `/opt/newshub/agentcore/*/` 做可编辑安装。
 
 更多细节与迁移说明见 [reference.md](reference.md)。

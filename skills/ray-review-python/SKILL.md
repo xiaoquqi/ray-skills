@@ -40,6 +40,32 @@ Apply strictly to hand-written Python code. Relax or skip strict style checks fo
 - trivial boilerplate (`__init__.py` re-export only)
 - large fixture/data files
 
+When user provides one or more target directories, treat them as mandatory review
+scope boundaries. Only collect and review changed files within those directories.
+
+## Review Workflow
+
+Always run this workflow before giving review conclusions:
+
+1. Confirm review scope first:
+   - If user provides target directory/directories, use them as scope.
+   - Otherwise, use repository-level scope.
+2. Use `git diff` to gather the complete changed file list in confirmed scope.
+3. Phase 1 - Format/style review and fix:
+   - For each changed Python file, review full file content for style issues.
+   - Apply safe non-behavioral fixes first (formatting, naming clarity,
+     docstring/comment language, line length, import ordering).
+4. Phase 2 - Logic review only (no direct logic edits):
+   - Review modified hunks and nearby context for logic quality and risk.
+   - Do not directly change business logic in this phase.
+5. Phase 3 - Impact evaluation for user decision:
+   - Summarize behavior/compatibility/blast-radius impacts.
+   - Propose options and trade-offs, then let user decide logic changes.
+6. Merge findings, remove duplicates, and output by severity.
+
+Do not review only snippets from the changed hunk. Always confirm whole-file
+consistency to avoid missing latent issues outside edited lines.
+
 ## Core Standards
 
 - Max line length: 79 characters.
@@ -48,12 +74,31 @@ Apply strictly to hand-written Python code. Relax or skip strict style checks fo
 - Comments and docstrings must be English.
 - Comments go above code, not inline.
 - Public classes/functions require triple-quoted docstrings.
-- Use short, precise names.
+- Use short, precise, and simple names/wording where possible.
 - For `print` and logging with variables, use f-strings.
 - Keep functions focused; split functions over ~100 lines when practical.
 - Separate logical blocks with one blank line.
 - Add contextual logging with appropriate level.
 - For long tasks, log paired "Starting <task>" and "Finished <task>".
+
+## Change-Focused Logic Review
+
+For every meaningful modified block, explicitly assess these questions:
+
+1. Why was this change made?
+2. Is this change necessary, or can the same goal be achieved with less change?
+3. Is this the minimal safe change?
+4. What is the blast radius and regression risk?
+5. Which upstream/downstream call paths may be impacted?
+6. Is there hard-coded logic/data/path/config that should be parameterized?
+7. Does this hurt future extensibility or increase coupling?
+8. Assuming this function is already used in production, what behavior contracts
+   might break for existing callers?
+9. Under the same assumption, what migration/compatibility safeguards are needed
+   (for example: backward-compatible defaults, deprecation window, adapter)?
+
+If evidence is insufficient to answer, raise it as an open question instead of
+guessing.
 
 ## Review Output Format
 
@@ -61,10 +106,37 @@ When user asks for a review, output in this order:
 
 1. Findings first, sorted by severity.
 2. Each finding includes file path and line reference.
-3. Then open questions/assumptions.
-4. End with brief summary and residual risks/testing gaps.
+3. List format/style fixes already applied in Phase 1.
+4. Then open questions/assumptions from logic review.
+5. Provide a risk-focused summary as prioritized plain-text items (no table).
+6. End with brief summary and residual risks/testing gaps.
 
 If no issues are found, state that explicitly.
+
+## Risk Summary Output (Non-Table)
+
+Do not use Markdown tables. Some clients cannot render them.
+
+Always summarize risk as prioritized plain-text entries using this format:
+
+- `[P0] <dimension>` Assessment: High concern | Evidence: ... | Impact: ... |
+  Mitigation: ...
+- `[P1] <dimension>` Assessment: Medium concern | Evidence: ... | Impact: ... |
+  Mitigation: ...
+- `[P2] <dimension>` Assessment: Low concern | Evidence: ... | Impact: ... |
+  Mitigation: ...
+
+Use these dimensions (order by real risk, not fixed order):
+
+- Necessity of change
+- Minimal-change compliance
+- Blast radius
+- Upstream/downstream coupling impact
+- Existing-caller compatibility risk
+- Hard-code and extensibility risk
+
+If a dimension has no clear conclusion, set Assessment to `Unknown` and explain
+what evidence is missing.
 
 ## NOTE/TODO/FIXME Rules
 
@@ -73,13 +145,3 @@ For special blocks, use exactly one marker above the block:
 - `NOTE(Ray):` rationale/constraint
 - `TODO(Ray):` planned follow-up
 - `FIXME(Ray):` known defect or temporary workaround
-
-## Review Record Output
-
-If generating a saved review/optimization report:
-
-- Directory: `docs/review_histories`
-- Filename: `<rule_name>_<base_commit_6>.md`
-- Example: `docs/review_histories/ray-review-python_a1b2c3.md`
-
-Reuse the same file for same rule + base commit.

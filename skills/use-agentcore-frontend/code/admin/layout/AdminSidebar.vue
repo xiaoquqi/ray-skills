@@ -162,7 +162,7 @@
         <button
           type="button"
           class="admin-nav-item admin-nav-item-parent w-full"
-          @click="toggleMenu('adminLLMManagement')"
+          @click="toggleMenu('adminMiniappSettings')"
         >
           <svg
             class="w-5 h-5 flex-shrink-0"
@@ -174,10 +174,309 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
             />
           </svg>
-          <span class="flex-1 text-left">{{ t('llm.menuTitle') }}</span>
+          <span class="flex-1 text-left">{{
+            t('common.menu.adminMiniappSettings')
+          }}</span>
+          <svg
+            class="w-4 h-4 ml-1 transition-transform duration-200 flex-shrink-0"
+            :class="adminMiniappSettings ? 'rotate-90' : ''"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+        <Transition
+          enter-active-class="transition-all duration-200 ease-out"
+          enter-from-class="opacity-0 max-h-0"
+          enter-to-class="opacity-100 max-h-96"
+          leave-active-class="transition-all duration-200 ease-in"
+          leave-from-class="opacity-100 max-h-96"
+          leave-to-class="opacity-0 max-h-0"
+        >
+          <div v-show="adminMiniappSettings" class="submenu">
+            <router-link
+              to="/console/miniapp-settings/general"
+              class="admin-nav-item admin-nav-item-child"
+              :class="
+                isActive('/console/miniapp-settings/general') ? 'admin-nav-item-active' : ''
+              "
+              @click="isMobile && $emit('close')"
+            >
+              <svg
+                class="w-4 h-4 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <span>{{ t('admin.miniappSettings.menuGeneral') }}</span>
+            </router-link>
+            <router-link
+              to="/console/miniapp-settings/prompts"
+              class="admin-nav-item admin-nav-item-child"
+              :class="
+                isActive('/console/miniapp-settings/prompts') ? 'admin-nav-item-active' : ''
+              "
+              @click="isMobile && $emit('close')"
+            >
+              <svg
+                class="w-4 h-4 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <span>{{ t('admin.miniappSettings.menuPrompts') }}</span>
+            </router-link>
+            <router-link
+              to="/console/miniapp-settings/llm"
+              class="admin-nav-item admin-nav-item-child"
+              :class="isActive('/console/miniapp-settings/llm') ? 'admin-nav-item-active' : ''"
+              @click="isMobile && $emit('close')"
+            >
+              <svg
+                class="w-4 h-4 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                />
+              </svg>
+              <span>{{ t('admin.miniappSettings.menuLLM') }}</span>
+            </router-link>
+          </div>
+        </Transition>
+      </div>
+
+      <div class="menu-group">
+        <button
+          type="button"
+          class="admin-nav-item admin-nav-item-parent w-full"
+          @click="toggleMenu('adminStaticData')"
+        >
+          <svg
+            class="w-5 h-5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+            />
+          </svg>
+          <span class="flex-1 text-left">{{
+            t('common.menu.adminStaticData')
+          }}</span>
+          <svg
+            class="w-4 h-4 ml-1 transition-transform duration-200 flex-shrink-0"
+            :class="adminStaticData ? 'rotate-90' : ''"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+        <Transition
+          enter-active-class="transition-all duration-200 ease-out"
+          enter-from-class="opacity-0 max-h-0"
+          enter-to-class="opacity-100 max-h-96"
+          leave-active-class="transition-all duration-200 ease-in"
+          leave-from-class="opacity-100 max-h-96"
+          leave-to-class="opacity-0 max-h-0"
+        >
+          <div v-show="adminStaticData" class="submenu">
+            <router-link
+              to="/console/categories"
+              class="admin-nav-item admin-nav-item-child"
+              :class="
+                isActive('/console/categories') ? 'admin-nav-item-active' : ''
+              "
+              @click="isMobile && $emit('close')"
+            >
+              <svg
+                class="w-4 h-4 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                />
+              </svg>
+              <span>{{ t('common.menu.adminCategories') }}</span>
+            </router-link>
+            <router-link
+              to="/console/common-questions"
+              class="admin-nav-item admin-nav-item-child"
+              :class="
+                isActive('/console/common-questions') ? 'admin-nav-item-active' : ''
+              "
+              @click="isMobile && $emit('close')"
+            >
+              <svg
+                class="w-4 h-4 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              <span>{{ t('common.menu.adminCommonQuestions') }}</span>
+            </router-link>
+          </div>
+        </Transition>
+      </div>
+
+      <div class="menu-group">
+        <button
+          type="button"
+          class="admin-nav-item admin-nav-item-parent w-full"
+          @click="toggleMenu('adminRecordsGroup')"
+        >
+          <svg
+            class="w-5 h-5 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span class="flex-1 text-left">{{
+            t('common.menu.adminRecordsGroup')
+          }}</span>
+          <svg
+            class="w-4 h-4 ml-1 transition-transform duration-200 flex-shrink-0"
+            :class="adminRecordsGroup ? 'rotate-90' : ''"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+        <Transition
+          enter-active-class="transition-all duration-200 ease-out"
+          enter-from-class="opacity-0 max-h-0"
+          enter-to-class="opacity-100 max-h-96"
+          leave-active-class="transition-all duration-200 ease-in"
+          leave-from-class="opacity-100 max-h-96"
+          leave-to-class="opacity-0 max-h-0"
+        >
+          <div v-show="adminRecordsGroup" class="submenu">
+            <router-link
+              to="/console/question-analyze"
+              class="admin-nav-item admin-nav-item-child"
+              :class="
+                isActive('/console/question-analyze') ? 'admin-nav-item-active' : ''
+              "
+              @click="isMobile && $emit('close')"
+            >
+              <svg
+                class="w-4 h-4 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <span>{{ t('common.menu.adminQuestionAnalyze') }}</span>
+            </router-link>
+            <router-link
+              to="/console/records"
+              class="admin-nav-item admin-nav-item-child"
+              :class="isActive('/console/records') ? 'admin-nav-item-active' : ''"
+              @click="isMobile && $emit('close')"
+            >
+              <svg
+                class="w-4 h-4 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <span>{{ t('common.menu.adminRecords') }}</span>
+            </router-link>
+          </div>
+        </Transition>
+      </div>
+
           <svg
             class="w-4 h-4 ml-1 transition-transform duration-200 flex-shrink-0"
             :class="adminLLMManagement ? 'rotate-90' : ''"
@@ -610,6 +909,9 @@ const { t } = useI18n()
 const route = useRoute()
 
 const adminUserGroup = ref(true)
+const adminMiniappSettings = ref(true)
+const adminStaticData = ref(true)
+const adminRecordsGroup = ref(true)
 const adminLLMManagement = ref(true)
 const adminTaskManagement = ref(true)
 const adminNotificationManagement = ref(true)
@@ -628,6 +930,9 @@ function isActive(path) {
 function toggleMenu(menuKey) {
   const refs = {
     adminUserGroup,
+    adminMiniappSettings,
+    adminStaticData,
+    adminRecordsGroup,
     adminLLMManagement,
     adminTaskManagement,
     adminNotificationManagement
@@ -640,6 +945,12 @@ function setOpenFromPath() {
   const path = route.path
   if (path.startsWith('/console/users') || path.startsWith('/console/groups'))
     adminUserGroup.value = true
+  if (path.startsWith('/console/miniapp-settings'))
+    adminMiniappSettings.value = true
+  if (path.startsWith('/console/categories') || path.startsWith('/console/common-questions'))
+    adminStaticData.value = true
+  if (path.startsWith('/console/question-analyze') || path.startsWith('/console/records'))
+    adminRecordsGroup.value = true
   if (path.startsWith('/console/llm')) adminLLMManagement.value = true
   if (path.startsWith('/console/task-management'))
     adminTaskManagement.value = true

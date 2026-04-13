@@ -2,7 +2,7 @@
 """
 Registry for periodic tasks. Apps register entries via
 register_periodic_tasks(); apply_registry() writes them to
-django_celery_beat (idempotent).
+django_celery_beat. Existing rows are left untouched.
 
 Pattern from devmind: no Django signals; intended to be called from
 a CLI (e.g. entrypoint after migrate) so the flow is portable.
@@ -58,9 +58,8 @@ class TaskRegistry:
     In-memory registry of periodic task definitions.
 
     Apps add entries via add(); apply() writes them to django_celery_beat.
-    New tasks are created with full defaults. Existing tasks are updated only
-    on code-owned fields (task, args, kwargs); schedule (crontab/interval),
-    queue, and enabled are left as in the DB so user customisations are kept.
+    New tasks are created with full defaults. Existing tasks are left
+    untouched so database-side customisations are preserved.
     """
 
     def __init__(self):
@@ -145,18 +144,28 @@ class TaskRegistry:
             name=name, defaults=create_defaults
         )
         if not created:
-            obj.task = task_name
-            obj.args = json.dumps(list(args))
-            obj.kwargs = json.dumps(kwargs)
-            obj.save(update_fields=["task", "args", "kwargs"])
+            logger.debug(
+                "Periodic task already exists, skipping update: %s",
+                name,
+            )
+            return False
+
         PeriodicTasks.update_changed()
+        return True
 
     def apply(self):
-        """Write all registered entries to django_celery_beat (idempotent)."""
+        """
+        Write all registered entries to django_celery_beat.
+
+        Existing rows are skipped so database-side edits are preserved.
+        """
         for name, entry in self._entries.items():
             try:
-                self._apply_one(name, entry)
-                logger.debug("Registered periodic task: %s", name)
+                created = self._apply_one(name, entry)
+                if created:
+                    logger.debug("Registered periodic task: %s", name)
+                else:
+                    logger.debug("Skipped existing periodic task: %s", name)
             except Exception as e:
                 logger.exception(
                     "Failed to register periodic task %s: %s", name, e

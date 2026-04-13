@@ -17,4 +17,5 @@
 - django-celery-beat
 
 各 app（含 agentcore）需提供 `periodic_tasks` 模块并实现 `register_periodic_tasks()`，在其中通过 `from core.periodic_registry import TASK_REGISTRY` 调用 `TASK_REGISTRY.add(...)` 注册任务。  
+`periodic_registry` 的语义是“**不存在则创建，已存在则完全跳过**”，这样数据库里手工调整过的 Beat 记录不会被启动流程覆盖。  
 启动时在 entrypoint 中执行：`python manage.py register_periodic_tasks`（见 SKILL 的 entrypoint 小节）。
