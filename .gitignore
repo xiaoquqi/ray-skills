@@ -25,3 +25,6 @@ dist/
 # Local installed skill mirrors / caches
 scripts/.agents/
 scripts/.codex/
+
+.codex
+.omx
