@@ -80,3 +80,6 @@ For special blocks, use exactly one marker above the block:
 ## Output
 
 When reporting back, describe only the formatting and readability changes made.
+Match the user's input language when it is clear. If the user's language is
+unclear or mixed, default to Chinese. Keep any code snippets, identifiers,
+comments, and docstrings in English.

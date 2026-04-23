@@ -20,5 +20,8 @@ process them one by one.
 
 ## Output Language
 
-- Default to Chinese.
-- If the user asks for English, respond in English.
+- Match the user's input language when it is clear.
+- If the user's language is unclear or mixed, default to Chinese.
+- If the user explicitly asks for English, respond in English.
+- Keep code snippets, identifiers, comments, and docstrings in English when
+  they are part of the reviewed Python code.

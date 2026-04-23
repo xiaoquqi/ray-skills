@@ -519,6 +519,13 @@ Structure your review as:
 
 List findings first, sorted by severity.
 Each finding must include file path and line reference.
+Describe each finding in terms of:
+- the concrete usage scenario that triggers the problem
+- what the caller, user, or operator will observe
+- whether the issue is user-visible
+- how wide the blast radius is
+- the code-level cause
+- the suggested repair approach, preferring the minimum viable fix
 
 ### Open Questions
 
@@ -537,11 +544,17 @@ Group by category. For each issue:
 - **Lines**: Specific line numbers
 - **PEP 8/Google Reference**: Section reference (if applicable)
 - **Description**: Clear explanation of the issue
+- **User Scenario**: Concrete situation in which this issue is triggered
+- **Impact**: What breaks or degrades for the caller, user, or operator; say
+  whether the issue is user-visible
+- **Blast Radius**: Scope, frequency, and affected users/systems
+- **Cause**: Code-level explanation of why the issue occurs
 - **Current Code**:
   ```python
   # Problematic code excerpt
   ```
-- **Recommended Fix**:
+- **Suggested Fix**: Direct repair approach, preferring the minimum viable fix
+  before larger redesign
   ```python
   # Corrected code
   ```

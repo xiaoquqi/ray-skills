@@ -58,8 +58,14 @@ When reviewing code, output in this order:
 
 1. Findings sorted by severity.
 2. File path and line reference for each finding.
-3. Open questions and assumptions.
-4. Brief summary with residual risks and testing gaps.
+3. For each finding, include:
+   - `User Scenario`: concrete trigger scenario
+   - `Impact`: what the caller, user, or operator will observe, whether the
+     issue is user-visible, and the likely blast radius
+   - `Cause`: code-level reason the issue occurs
+   - `Suggested Fix`: direct repair approach, preferring the minimum viable fix
+4. Open questions and assumptions.
+5. Brief summary with residual risks and testing gaps.
 
 If no issues are found, state that explicitly.
 

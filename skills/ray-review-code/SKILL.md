@@ -52,6 +52,14 @@ for:
 
 - Review the full file and nearby context, not only the diff hunk.
 - Focus on correctness, regressions, compatibility, coupling, and blast radius.
+- Describe risk from the user or operator perspective, not only from the code
+  perspective.
+- For each risk, explain the concrete usage scenario, what the user will see,
+  and how wide the blast radius is.
+- Keep the code-level cause in the finding so the reader can verify the issue
+  from the implementation, not only from symptoms.
+- Include a direct suggested fix for each material finding. Prefer the minimum
+  viable fix before broader redesign ideas.
 - Separate factual findings from assumptions.
 - Raise open questions when evidence is insufficient.
 - Do not make mechanical formatting the primary concern.
@@ -68,8 +76,15 @@ When user asks for a review, output in this order:
 
 1. Findings first, sorted by severity.
 2. Each finding includes file path and line reference.
-3. Then open questions/assumptions.
-4. End with brief summary and residual risks/testing gaps.
+3. Each finding uses these fields:
+   - `User Scenario`: the triggering scenario
+   - `Impact`: the user-visible or business-visible failure, including who is
+     affected, whether the issue is user-visible, and the blast radius
+   - `Cause`: the code-level reason the issue happens
+   - `Suggested Fix`: the direct repair approach, preferring the minimum viable
+     fix when possible
+4. Then open questions/assumptions.
+5. End with brief summary and residual risks/testing gaps.
 
 If no issues are found, state that explicitly.
 
@@ -89,10 +104,22 @@ For special blocks, use exactly one marker above the block:
 3. Read the changed files and surrounding context, one file at a time.
 4. Evaluate logic, edge cases, and downstream impact.
 5. Check whether the change is necessary and minimal.
-6. Summarize findings by severity.
-7. Call out residual risks and missing tests.
+6. Translate each material risk into a concrete user scenario and blast radius.
+7. Explain the code-level cause for each finding.
+8. Propose the minimum viable fix, then summarize findings by severity.
+9. Call out residual risks and missing tests.
 
 ## Output
 
 When reporting back, lead with findings, then open questions, then a concise
-risk summary.
+risk summary. Risk summaries should help the reader estimate blast radius from
+the described scenarios.
+
+Use a practical finding shape:
+
+- `Severity`
+- `Location`
+- `User Scenario`
+- `Impact`
+- `Cause`
+- `Suggested Fix`
